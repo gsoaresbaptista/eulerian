@@ -139,3 +139,30 @@ void graph_free(graph* g) {
     free(g->degrees);
     free(g);
 }
+
+// Function to check if a vertex has any unvisited edges
+static bool graph_has_unvisited_edges(graph* g, int vertex) {
+    return g->adj_lists[vertex] != NULL;
+}
+
+void graph_hierholzer_algorithm(graph* g, int start_vertex, stack* circuit) {
+    stack* current_path = stack_create(10);
+    stack_push(current_path, start_vertex);
+
+    while (current_path->top != -1) {
+        int current_vertex = current_path->items[current_path->top];
+
+        if (graph_has_unvisited_edges(g, current_vertex)) {
+            node* next_node = g->adj_lists[current_vertex];
+            int next_vertex = next_node->vertex;
+
+            graph_remove_edge(g, current_vertex, next_vertex);
+            stack_push(current_path, next_vertex);
+        } else {
+            int vertex = stack_pop(current_path);
+            stack_push(circuit, vertex);
+        }
+    }
+
+    stack_free(current_path);
+}

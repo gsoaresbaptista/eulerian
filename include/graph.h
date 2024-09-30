@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include "stack.h"
 
 typedef struct node {
     int vertex;
@@ -75,5 +76,16 @@ void graph_dump_to_dot(graph* g, const char* filename);
  * @complexity O(V + E), where V is the number of vertices and E is the number of edges.
  */
 void graph_free(graph* g);
+
+/**
+ * @brief Finds the Eulerian circuit using Hierholzer's Algorithm.
+ * 
+ * @param g Pointer to the graph.
+ * @param start_vertex Starting vertex for the algorithm.
+ * @param circuit Stack to store the Eulerian circuit.
+ * 
+ * @complexity O(E), where E is the number of edges.
+ */
+void graph_hierholzer_algorithm(graph* g, int start_vertex, stack* circuit);
 
 #endif
