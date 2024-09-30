@@ -156,4 +156,12 @@ int count_connected_components(graph* g);
  */
 void dfs(graph* g, int vertex, bool* visited);
 
+/**
+ * @brief Creates an Eulerian graph with a specified number of edges.
+ * 
+ * @param num_edges Number of edges in the graph.
+ * @return Pointer to the newly created Eulerian graph.
+ */
+graph* create_eulerian_graph_by_edges(int num_edges);
+
 #endif

@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Iinclude
+CFLAGS = -Ofast -Iinclude
 
 SRCDIR = src
 INCDIR = include

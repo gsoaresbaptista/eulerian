@@ -203,12 +203,6 @@ void graph_hierholzer_algorithm(graph* g, int start_vertex, stack* circuit) {
     stack_free(current_path);
 }
 
-void add_edge_ensure_eulerian(graph* g, int src, int dest) {
-    graph_add_edge(g, src, dest);
-    g->degrees[src]++;
-    g->degrees[dest]++;
-}
-
 graph* create_eulerian_graph(int num_vertices) {
     graph* g = graph_create(num_vertices);
 
@@ -322,4 +316,34 @@ int count_connected_components(graph* g) {
 
     free(visited);
     return num_components;
+}
+
+void add_edge_ensure_eulerian(graph* g, int src, int dest) {
+    graph_add_edge(g, src, dest);
+    g->degrees[src]++;
+    g->degrees[dest]++;
+}
+
+graph* create_eulerian_graph_by_edges(int num_edges) {
+    int num_vertices = num_edges / 2;  // Start with enough vertices for even-degree edges
+    graph* g = graph_create(num_vertices);
+
+    // Add edges to ensure an Eulerian circuit
+    for (int i = 0; i < num_vertices - 1; i++) {
+        add_edge_ensure_eulerian(g, i, i + 1);  // Add a cycle
+    }
+    add_edge_ensure_eulerian(g, num_vertices - 1, 0);  // Complete the cycle
+
+    // Add additional edges until we reach the required number of edges
+    int edges_added = num_vertices;
+    while (edges_added < num_edges) {
+        int src = rand() % num_vertices;
+        int dest = rand() % num_vertices;
+        if (src != dest) {  // Avoid self-loops
+            add_edge_ensure_eulerian(g, src, dest);
+            edges_added++;
+        }
+    }
+
+    return g;
 }
