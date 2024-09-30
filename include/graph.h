@@ -88,4 +88,36 @@ void graph_free(graph* g);
  */
 void graph_hierholzer_algorithm(graph* g, int start_vertex, stack* circuit);
 
+/**
+ * @brief Adds an edge between two vertices and ensures both vertices have even degrees.
+ * 
+ * @param g Pointer to the graph.
+ * @param src Source vertex.
+ * @param dest Destination vertex.
+ * 
+ * @complexity O(1) for each addition.
+ */
+void add_edge_ensure_eulerian(graph* g, int src, int dest);
+
+/**
+ * @brief Creates an Eulerian graph with a specified number of vertices.
+ * 
+ * @param num_vertices Number of vertices in the graph.
+ * @return Pointer to the newly created Eulerian graph.
+ * 
+ * @complexity O(V), where V is the number of vertices.
+ */
+graph* create_eulerian_graph(int num_vertices);
+
+/**
+ * @brief Creates multiple Eulerian graphs with varying sizes.
+ * 
+ * @param sizes Array of sizes for the Eulerian graphs.
+ * @param count Number of graphs to create.
+ * @return Array of pointers to the created Eulerian graphs.
+ * 
+ * @complexity O(V * C), where V is the number of vertices in each graph and C is the count.
+ */
+graph** create_multiple_eulerian_graphs(int* sizes, int count);
+
 #endif

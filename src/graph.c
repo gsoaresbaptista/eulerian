@@ -166,3 +166,29 @@ void graph_hierholzer_algorithm(graph* g, int start_vertex, stack* circuit) {
 
     stack_free(current_path);
 }
+
+void add_edge_ensure_eulerian(graph* g, int src, int dest) {
+    graph_add_edge(g, src, dest);
+    g->degrees[src]++;
+    g->degrees[dest]++;
+}
+
+graph* create_eulerian_graph(int num_vertices) {
+    graph* g = graph_create(num_vertices);
+
+    // Connect vertices to form a cycle, ensuring all vertices have even degrees
+    for (int i = 0; i < num_vertices - 1; i++) {
+        add_edge_ensure_eulerian(g, i, i + 1);
+    }
+    add_edge_ensure_eulerian(g, num_vertices - 1, 0);
+
+    return g;
+}
+
+graph** create_multiple_eulerian_graphs(int* sizes, int count) {
+    graph** graphs = (graph**)malloc(count * sizeof(graph*));
+    for (int i = 0; i < count; i++) {
+        graphs[i] = create_eulerian_graph(sizes[i]);
+    }
+    return graphs;
+}

@@ -4,56 +4,20 @@
 #include "stack.h"
 
 int main() {
-    // Create a graph with 5 vertices
-    int vertices = 9;
-    graph* g = graph_create(vertices);
+    int sizes[] = {4, 6, 8};  // Tamanhos dos grafos
+    int count = sizeof(sizes) / sizeof(sizes[0]);
+    
+    // Criar múltiplos grafos Eulerianos
+    graph** eulerian_graphs = create_multiple_eulerian_graphs(sizes, count);
 
-    // Add edges
-    graph_add_edge(g, 0, 1);
-    graph_add_edge(g, 0, 2);
-    graph_add_edge(g, 0, 3);
-    graph_add_edge(g, 0, 7);
-    graph_add_edge(g, 1, 2);
-    graph_add_edge(g, 1, 3);
-    graph_add_edge(g, 1, 4);
-    graph_add_edge(g, 2, 4);
-    graph_add_edge(g, 2, 5);
-    graph_add_edge(g, 2, 6);
-    graph_add_edge(g, 2, 6);
-    graph_add_edge(g, 3, 4);
-    graph_add_edge(g, 3, 7);
-    graph_add_edge(g, 4, 5);
-    graph_add_edge(g, 4, 7);
-    graph_add_edge(g, 4, 8);
-    graph_add_edge(g, 5, 6);
-    graph_add_edge(g, 5, 8);
-    graph_add_edge(g, 6, 8);
-    graph_add_edge(g, 7, 8);
-
-    // Dump the graph to a .dot file
-    graph_dump_to_dot(g, "graph.dot");
-
-    // Check if the graph has an Eulerian circuit
-    if (!graph_is_eulerian(g)) {
-        printf("The graph does not have an Eulerian circuit.\n");
-        graph_free(g);
-        return 0;
+    // Dump para arquivos .dot para visualizar os grafos
+    for (int i = 0; i < count; i++) {
+        char filename[20];
+        sprintf(filename, "graph%d.dot", i);
+        graph_dump_to_dot(eulerian_graphs[i], filename);
+        graph_free(eulerian_graphs[i]);
     }
 
-    // Find the Eulerian circuit starting from vertex 0
-    stack* circuit = stack_create(10);
-    graph_hierholzer_algorithm(g, 0, circuit);
-
-    // Output the Eulerian circuit
-    printf("Eulerian circuit: ");
-    for (int i = circuit->top; i >= 0; i--) {
-        printf("%c ", 'a' + circuit->items[i]);
-    }
-    printf("\n");
-
-    // Free allocated memory
-    graph_free(g);
-    stack_free(circuit);
-
+    free(eulerian_graphs);
     return 0;
 }
