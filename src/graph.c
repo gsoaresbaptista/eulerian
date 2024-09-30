@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 #include "graph.h"
 
 // Create a new node for the adjacency list
@@ -39,6 +40,7 @@ void graph_add_edge(graph* g, int src, int dest) {
 
 // Remove an edge from the graph
 void graph_remove_edge(graph* g, int src, int dest) {
+    // Remove dest from src's adjacency list
     node* temp = g->adj_lists[src];
     node* prev = NULL;
 
@@ -47,32 +49,66 @@ void graph_remove_edge(graph* g, int src, int dest) {
         temp = temp->next;
     }
 
-    if (temp != NULL) {
-        if (prev != NULL) {
-            prev->next = temp->next;
-        } else {
-            g->adj_lists[src] = temp->next;
-        }
-        free(temp);
-        g->degrees[src]--;
+    if (temp == NULL) return; // Edge not found
+
+    if (prev == NULL) {
+        g->adj_lists[src] = temp->next;
+    } else {
+        prev->next = temp->next;
     }
 
+    free(temp);
+
+    // Remove src from dest's adjacency list (undirected graph)
     temp = g->adj_lists[dest];
     prev = NULL;
+
     while (temp != NULL && temp->vertex != src) {
         prev = temp;
         temp = temp->next;
     }
 
-    if (temp != NULL) {
-        if (prev != NULL) {
-            prev->next = temp->next;
-        } else {
-            g->adj_lists[dest] = temp->next;
-        }
-        free(temp);
-        g->degrees[dest]--;
+    if (temp == NULL) return;
+
+    if (prev == NULL) {
+        g->adj_lists[dest] = temp->next;
+    } else {
+        prev->next = temp->next;
     }
+
+    free(temp);
+}
+
+bool tarjan_dfs(graph* g, int u, bool* visited, int* discovery, int* low, int* parent, int src, int dest, int* time_counter) {
+    visited[u] = true;
+    discovery[u] = low[u] = ++(*time_counter);
+
+    node* adj = g->adj_lists[u];
+    while (adj != NULL) {
+        int v = adj->vertex; 
+
+        if (!visited[v]) {
+            parent[v] = u;
+            if (tarjan_dfs(g, v, visited, discovery, low, parent, src, dest, time_counter)) {
+                return true;
+            }
+
+            low[u] = (low[u] < low[v]) ? low[u] : low[v];
+
+            if (low[v] > discovery[u]) {
+                if ((u == src && v == dest) || (u == dest && v == src)) {
+                    return true;  // The edge (src, dest) is a bridge
+                }
+            }
+        }
+        else if (v != parent[u]) {
+            low[u] = (low[u] < discovery[v]) ? low[u] : discovery[v];
+        }
+
+        adj = adj->next;
+    }
+
+    return false;
 }
 
 // Check if the graph has an Eulerian circuit
@@ -176,7 +212,6 @@ void add_edge_ensure_eulerian(graph* g, int src, int dest) {
 graph* create_eulerian_graph(int num_vertices) {
     graph* g = graph_create(num_vertices);
 
-    // Connect vertices to form a cycle, ensuring all vertices have even degrees
     for (int i = 0; i < num_vertices - 1; i++) {
         add_edge_ensure_eulerian(g, i, i + 1);
     }
@@ -191,4 +226,100 @@ graph** create_multiple_eulerian_graphs(int* sizes, int count) {
         graphs[i] = create_eulerian_graph(sizes[i]);
     }
     return graphs;
+}
+
+bool is_bridge(graph* g, int src, int dest) {
+    int V = g->num_vertices;
+
+    // Arrays for Tarjan's algorithm
+    bool* visited = (bool*)malloc(V * sizeof(bool));
+    int* discovery = (int*)malloc(V * sizeof(int));
+    int* low = (int*)malloc(V * sizeof(int));
+    int* parent = (int*)malloc(V * sizeof(int));
+
+    // Initialize arrays
+    for (int i = 0; i < V; i++) {
+        visited[i] = false;
+        discovery[i] = -1;
+        low[i] = -1;
+        parent[i] = -1;
+    }
+
+    int time_counter = 0;
+
+    // Call DFS from the src vertex to determine if (src, dest) is a bridge
+    bool is_bridge_edge = tarjan_dfs(g, src, visited, discovery, low, parent, src, dest, &time_counter);
+
+    // Clean up
+    free(visited);
+    free(discovery);
+    free(low);
+    free(parent);
+
+    return is_bridge_edge;
+}
+
+void fleury_algorithm(graph* g, int start_vertex, stack* circuit) {
+    int current_vertex = start_vertex;
+
+    while (g->adj_lists[current_vertex] != NULL) {
+        node* temp = g->adj_lists[current_vertex];
+        int next_vertex = -1;
+
+        // If there is only one edge, we can skip the bridge check
+        if (temp->next == NULL) {
+            next_vertex = temp->vertex;
+        } else {
+            // Traverse the adjacency list and find a non-bridge edge
+            while (temp != NULL) {
+                next_vertex = temp->vertex;
+
+                // Only check for a bridge if there are multiple edges
+                if (!is_bridge(g, current_vertex, next_vertex)) {
+                    break; // Found a non-bridge edge
+                }
+
+                temp = temp->next;
+            }
+        }
+
+        // If we reach here, either we've found a non-bridge edge or taken the only edge available
+        stack_push(circuit, next_vertex);
+        graph_remove_edge(g, current_vertex, next_vertex);  // Remove the edge
+        current_vertex = next_vertex;  // Move to the next vertex
+    }
+}
+
+void dfs(graph* g, int vertex, bool* visited) {
+    visited[vertex] = true;
+
+    node* adj_list = g->adj_lists[vertex];
+    while (adj_list != NULL) {
+        int adjacent_vertex = adj_list->vertex;
+        if (!visited[adjacent_vertex]) {
+            dfs(g, adjacent_vertex, visited);
+        }
+        adj_list = adj_list->next;
+    }
+}
+
+int count_connected_components(graph* g) {
+    int num_components = 0;
+    bool* visited = (bool*)malloc(g->num_vertices * sizeof(bool));
+
+    // Initialize all vertices as not visited
+    for (int i = 0; i < g->num_vertices; i++) {
+        visited[i] = false;
+    }
+
+    // Perform DFS for each unvisited vertex and count the components
+    for (int i = 0; i < g->num_vertices; i++) {
+        if (!visited[i]) {
+            dfs(g, i, visited);
+            num_components++;
+        }
+    }
+
+    free(visited);
+    return num_components;
 }

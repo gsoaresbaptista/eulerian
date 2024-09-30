@@ -120,4 +120,40 @@ graph* create_eulerian_graph(int num_vertices);
  */
 graph** create_multiple_eulerian_graphs(int* sizes, int count);
 
+/**
+ * @brief Checks if an edge between two vertices is a bridge.
+ * 
+ * @param g Pointer to the graph.
+ * @param src Source vertex.
+ * @param dest Destination vertex.
+ * @return true if the edge is a bridge, false otherwise.
+ */
+bool is_bridge(graph* g, int src, int dest);
+
+/**
+ * @brief Implements Fleury's algorithm to find an Eulerian circuit.
+ * 
+ * @param g Pointer to the graph.
+ * @param start_vertex Starting vertex for the algorithm.
+ * @param circuit Stack to store the Eulerian circuit.
+ */
+void fleury_algorithm(graph* g, int start_vertex, stack* circuit);
+
+/**
+ * @brief Counts the number of connected components in the graph using DFS.
+ * 
+ * @param g Pointer to the graph.
+ * @return The number of connected components in the graph.
+ */
+int count_connected_components(graph* g);
+
+/**
+ * @brief Perform DFS and mark visited vertices.
+ * 
+ * @param g Pointer to the graph.
+ * @param vertex Current vertex to explore.
+ * @param visited Array to mark visited vertices.
+ */
+void dfs(graph* g, int vertex, bool* visited);
+
 #endif
